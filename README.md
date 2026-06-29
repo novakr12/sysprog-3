@@ -1,3 +1,4 @@
+Zadatak 25:
 Koristeći Rx.NET i Google Books API, prikupiti opise (description) traženih knjiga. Rx vrši
 osnovno mapiranje dobijenih podataka i emituje ih kao poruke aktorima. Aktori čuvaju opise
 knjiga kao interno stanje i implementiraju Sentiment analizu koristeći SentimentAnalysis.NET ili
