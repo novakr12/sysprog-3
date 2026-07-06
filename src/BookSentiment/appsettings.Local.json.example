@@ -1,0 +1,6 @@
+{
+  "_comment": "Kopiraj ovaj fajl u 'appsettings.Local.json' i upiši svoj Google Books API kljuc. appsettings.Local.json je u .gitignore i NE odlazi na GitHub.",
+  "GoogleBooks": {
+    "ApiKey": "OVDE-NALEPI-SVOJ-KLJUC"
+  }
+}

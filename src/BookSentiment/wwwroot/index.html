@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="utf-8" />
+  <title>Analiza sentimenta knjiga</title>
+  <style>
+    body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; }
+    input { padding: .5rem; width: 300px; }
+    button { padding: .5rem 1rem; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { text-align: left; padding: .5rem; border-bottom: 1px solid #ccc; }
+    .pos { color: green; }
+    .neg { color: red; }
+  </style>
+</head>
+<body>
+  <h1>Analiza sentimenta knjiga</h1>
+
+  <form onsubmit="dodaj(event)">
+    <input id="q" placeholder="npr. Tolkien" required />
+    <button>Prati pojam</button>
+  </form>
+
+  <div id="pojmovi"></div>
+  <p id="info">Izaberite pojam.</p>
+  <table>
+    <thead><tr><th>Naslov</th><th>Sentiment</th><th>Pouzdanost</th></tr></thead>
+    <tbody id="knjige"></tbody>
+  </table>
+
+  <script>
+    let pojam = null;
+
+    async function dodaj(e) {
+      e.preventDefault();
+      pojam = document.getElementById('q').value.trim();
+      if (!pojam) return;
+      await fetch('/api/search?q=' + encodeURIComponent(pojam), { method: 'POST' });
+      prikaziPojmove();
+      prikaziRezultate();
+    }
+
+    async function prikaziPojmove() {
+      const lista = await (await fetch('/api/queries')).json();
+      document.getElementById('pojmovi').innerHTML =
+        lista.map(p => `<button onclick="izaberi('${p}')">${p}</button>`).join(' ');
+    }
+
+    function izaberi(p) { pojam = p; prikaziRezultate(); }
+
+    async function prikaziRezultate() {
+      if (!pojam) return;
+      const res = await fetch('/api/results?q=' + encodeURIComponent(pojam));
+      const info = document.getElementById('info');
+      const knjige = document.getElementById('knjige');
+      if (!res.ok) {
+        info.textContent = 'Još nema podataka za "' + pojam + '". Sačekajte trenutak.';
+        knjige.innerHTML = '';
+        return;
+      }
+      const d = await res.json();
+      info.textContent = `${d.query}: ${d.totalBooks} knjiga (${d.positive} pozitivnih, ${d.negative} negativnih)`;
+      knjige.innerHTML = d.books.map(b => {
+        const poz = b.sentiment === 'Positive';
+        return `<tr>
+          <td>${b.title}</td>
+          <td class="${poz ? 'pos' : 'neg'}">${poz ? 'Pozitivan' : 'Negativan'}</td>
+          <td>${(b.confidence * 100).toFixed(0)}%</td>
+        </tr>`;
+      }).join('');
+    }
+
+    prikaziPojmove();
+    setInterval(prikaziRezultate, 5000);
+  </script>
+</body>
+</html>
